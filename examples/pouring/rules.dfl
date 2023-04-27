@@ -8,7 +8,7 @@
 
 # Containment disposition
 1: Container(?x),  Liquid(?l), contains(?x, ?l) => canPour(?x, ?l)
-2: canPour(?x) => hasDisp(?x, Containment)
+2: canPour(?x, ?l) => hasDisp(?x, Containment)
 
 # Ask: With the below rules, it does not infer canPourTo but after removing contains it does
 #1: Container(?x), contains(?x, ?l), Container(?y), near(?x, ?y) => canPourTo(?x, ?y)
@@ -16,6 +16,7 @@
 
 # The opening of the source has to be within the boundary of the destination (unless the spout of the source
 # is long and can create a flow that will reach the destination).
+# Containers has to be open to pour - hasopening means that the object is open or has a means to let the liquid out
 # should we go with l following a path and the goal is contained in d
 3: Container(?x), Container(?y), near(?x, ?y), hasOpening(?x,?o), hasOpening(?y,?p), within(?o,?p) => canPourTo(?x, ?y)
 #4: Container(?x), Container(?y), -near(?x, ?y) => -canPourTo(?x, ?y)
@@ -59,3 +60,4 @@
 
 14: inside(?x, ?y) => -outside(?x, ?y)
 15: near(?x, ?y) => near(?y, ?x)
+## When to tilt or just which direction to move to.
