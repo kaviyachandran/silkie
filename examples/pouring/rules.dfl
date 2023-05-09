@@ -9,10 +9,8 @@
 # Containment disposition
 1: Container(?x),  Liquid(?l), contains(?x, ?l) => canPour(?x, ?l)
 2: canPour(?x, ?l) => hasDisp(?x, Containment)
-
-# Ask: With the below rules, it does not infer canPourTo but after removing contains it does
-#1: Container(?x), contains(?x, ?l), Container(?y), near(?x, ?y) => canPourTo(?x, ?y)
-#2: Container(?x), contains(?x, ?l), Container(?y), far(?x, ?y) => -canPourTo(?x, ?y)
+2a: contains(?x, ?l) => inside(?l, ?x)
+2b: contains(?x, ?l) => holdUpright(?x)
 
 # The opening of the source has to be within the boundary of the destination (unless the spout of the source
 # is long and can create a flow that will reach the destination).
@@ -60,4 +58,27 @@
 
 14: inside(?x, ?y) => -outside(?x, ?y)
 15: near(?x, ?y) => near(?y, ?x)
-## When to tilt or just which direction to move to.
+## Plane at a height = height of the destination with a normal perpendicular to the ground (z= height of the destination).
+
+### Below only states if the distance between the source and destination is <= Height of the source. This can be used to
+### make sure if the pouring is possible. Condition 1
+15a: Container(?s), hasHeight(?s, ?hs), Container(?d), hasDistance(?s, ?d, ?dist), lessThanEqual(?dist,?hs) => near(?s, ?d)
+
+### Todo: With a longer spout, the distance bet S and d can be longer
+
+## When to tilt - source is held above the height of the  destination. cantilt
+## This is not the case for source with a long spout. But we did not make a case for the tilting space
+## todo: Should we state that there should be no object between s and d?
+16: Container(?s), Liquid(?x), contains(?s,?x), Container(?d),  near(?s, ?d), above(?s, ?d), hasOpening(?s,?o), hasOpening(?d,?p), within(?o,?p) => canTilt(?s)
+
+### Todo: Tilting space is a sphere(almost) anywhere the openings lay within
+
+### Source moves up and ends at a point in a plane above the Destination. IS: SPG
+17: Container(?s), Liquid(?x), contains(?s,?x), Container(?d), hasPeriphery(?d, ?p), LocationRole(?l), at(?s, ?l), LocationRole(?g), above(?g, ?p), hasDestination(?s, ?g) => willBeAt(?s, ?g)
+
+### Tilting start pose and an end pose again as IS: SPG?
+18: Container(?s), Liquid(?x), contains(?s,?x), Container(?d), canTilt(?s), LocationRole(?l), at(?s, ?l), LocationRole(?g), hasDestination(?s, ?g), passthroughAt(?x, ?s, ?g) => willBeAt(?s, ?g)
+
+### Which direction to move to in case of spill
+
+### In case of overflow, move back to upright
