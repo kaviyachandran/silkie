@@ -39,6 +39,7 @@
 # Some notion of overflow - liquid outside the destination. In this case, we need to stop pouring
 9: Container(?s), Container(?d), poursTo(?s,?d), contains(?s,?w), partOf(?l,?w), contains(?d,?l), movesUp(?l), outside(?o,?d), -inside(?o,?s), partOf(?p,?l) willBeAt(?p,?o) => overflows(?d) # Should we state the liquid is overflowing?
 10: Container(?s), Container(?d), poursTo(?s,?d), overflows(?d) => -canPourTo(?s,?d)
+10a: Container(?s), Container(?d), Liquid(?x), contains(?s,?x), -canPourTo(?s, ?d), LocationRole(?l), at(?s, ?l), hasDestination(?s, ?g), -passThroughAt(?x, ?s, ?g) => uprightAt(?s, ?g)
 
 # what does spilling mean? - when a piece of liquid is outside the destination. We need to adjust the pose or the tilt angle
 # todo - can we state poursTo already
