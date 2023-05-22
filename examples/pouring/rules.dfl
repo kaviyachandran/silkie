@@ -4,22 +4,22 @@
 
 # Affordance to check - pouring is possible only if there is source and destination in reachable space [NEAR-FAR]
 # Containedobject can just be any object, not necessarily liquid.
-0: canContain(?x,?l), Liquid(?l) => Container(?x)
+p_0: canContain(?x,?l), Liquid(?l) => Container(?x)
 
 # Containment disposition
-1: Container(?x),  Liquid(?l), contains(?x, ?l) => canPour(?x, ?l)
-2: canPour(?x, ?l) => hasDisp(?x, Containment)
-2a: contains(?x, ?l) => inside(?l, ?x)
-2b: contains(?x, ?l) => holdUpright(?x)
+r_1: Container(?x),  Liquid(?l), contains(?x, ?l) => canPour(?x, ?l)
+r_2: canPour(?x, ?l) => hasDisp(?x, Containment)
+r_2a: contains(?x, ?l) => inside(?l, ?x)
+r_2b: contains(?x, ?l), hasOpening(?x, ?o) => holdUpright(?x)
 
 # The opening of the source has to be within the boundary of the destination (unless the spout of the source
 # is long and can create a flow that will reach the destination).
 # Containers has to be open to pour - hasopening means that the object is open or has a means to let the liquid out
 # should we go with l following a path and the goal is contained in d
-3: Container(?x), Container(?y), near(?x, ?y), hasOpening(?x,?o), hasOpening(?y,?p), within(?o,?p) => canPourTo(?x, ?y)
+r_3: canPour(?x, ?l), Container(?y), SourceRole(?s), DestinationRole(?d), near(?x, ?y), hasOpening(?x,?o), hasOpening(?y,?p), within(?o,?p) => canPourTo(?x, ?y)
 #4: Container(?x), Container(?y), -near(?x, ?y) => -canPourTo(?x, ?y)
 
-4: canPourTo(?x,?y), Container(?s), isTilted(?s) => poursTo(?s, ?d)
+4: canPourTo(?x,?y), Container(?s), isTilted(?s), hasOpening(?s,?o), passThrough(?x,?o), partOf(?l,?x), hasOpening(?d,?p), within(?o,?p), inside(?l, ?d) => poursTo(?s, ?d)
 5: contains(?x, ?l) => inside(?l, ?x)
 
 # When the liquid flows out, it follows a trajectory. Pouring — substance(?) moves along a path(?) from a source(?) to a destination(?). 
@@ -37,9 +37,10 @@
 
 # Verticality - gives the quantity of liquid in the container
 # Some notion of overflow - liquid outside the destination. In this case, we need to stop pouring
-9: Container(?s), Container(?d), poursTo(?s,?d), contains(?s,?w), partOf(?l,?w), contains(?d,?l), movesUp(?l), outside(?o,?d), -inside(?o,?s), partOf(?p,?l) willBeAt(?p,?o) => overflows(?d) # Should we state the liquid is overflowing?
+9: Container(?s), Container(?d), poursTo(?s,?d), contains(?s,?w), partOf(?l,?w), contains(?d,?l), movesUp(?l), outside(?o,?d), -inside(?o,?s), partOf(?p,?l), willBeAt(?p,?o) => overflows(?d) # Should we state the liquid is overflowing?
 10: Container(?s), Container(?d), poursTo(?s,?d), overflows(?d) => -canPourTo(?s,?d)
-10a: Container(?s), Container(?d), Liquid(?x), contains(?s,?x), -canPourTo(?s, ?d), LocationRole(?l), at(?s, ?l), hasDestination(?s, ?g), -passThroughAt(?x, ?s, ?g) => uprightAt(?s, ?g)
+10a: Container(?s), Container(?d), SourceRole(?s), DestinationRole(?d), poursTo(?s, ?d), -canPourTo(?s, ?d), LocationRole(?l), at(?s, ?l), hasDestination(?s, ?g) => uprightAt(?s, ?g)
+10b: uprightAt(?s,?g) => Liquid(?x), contains(?s,?x), LocationRole(?g), at(?s,?g), hasOpening(?s, ?o), -passThrough(?x, ?o), -canPourTo(?s,?d)
 
 # what does spilling mean? - when a piece of liquid is outside the destination. We need to adjust the pose or the tilt angle
 # todo - can we state poursTo already
@@ -47,12 +48,10 @@
 12: poursTo(?s,?d), contains(?s,?l), partOf(?p,?l), isSpilled(?p) => moveTowards(?s,?d)
 
 # When the container is tipped, liquid flows out.
-# todo: when the container is tilted, l is not blocked from going outside???
 13: contains(?s,?l), hasOpening(?s,?o), isTilted(?s) => passThrough(?l,?o)
 
 # When the container is tipped rapidly or along a greater angle, more water comes out. Set the vertical axis along the source as zero
 
-# For the liquid to come out of the container, the angle of tipping has to be increased
 
 # When the liquid is spilling or flowing outside the destination container, decrease the angle of 
 # tipping to stop the flow of liquid.
@@ -62,23 +61,30 @@
 ## Plane at a height = height of the destination with a normal perpendicular to the ground (z= height of the destination).
 
 ### Below only states if the distance between the source and destination is <= Height of the source. This can be used to
-### make sure if the pouring is possible. Condition 1
-15a: Container(?s), hasHeight(?s, ?hs), Container(?d), hasDistance(?s, ?d, ?dist), lessThanEqual(?dist,?hs) => near(?s, ?d)
+### make sure if the pouring is possible. Condition 1. 
+### largerDimension --- Either height or width (long spout)
+15a: Container(?s), largerDimension(?s, ?hs), Container(?d), distanceBetweenSourceAndDest(?dist), lessThanEqual(?dist,?hs) => near(?s, ?d)
 
 ### Todo: With a longer spout, the distance bet S and d can be longer
 
 ## When to tilt - source is held above the height of the  destination. cantilt
 ## This is not the case for source with a long spout. But we did not make a case for the tilting space
 ## todo: Should we state that there should be no object between s and d?
-16: Container(?s), Liquid(?x), contains(?s,?x), Container(?d),  near(?s, ?d), above(?s, ?d), hasOpening(?s,?o), hasOpening(?d,?p), within(?o,?p) => canTilt(?s)
+16: Container(?s), Liquid(?x), contains(?s,?x), Container(?d),  near(?s, ?d), above(?s, ?d), hasOpening(?s,?o), hasOpening(?d,?p) => canTiltAbove(?s, ?d)
 
-### Todo: Tilting space is a sphere(almost) anywhere the openings lay within
+### Todo: Tilting space is a sphere(almost) anywhere the openings lie within
 
 ### Source moves up and ends at a point in a plane above the Destination. IS: SPG
 17: Container(?s), Liquid(?x), contains(?s,?x), Container(?d), hasPeriphery(?d, ?p), LocationRole(?l), at(?s, ?l), LocationRole(?g), above(?g, ?p), hasDestination(?s, ?g) => willBeAt(?s, ?g)
 
-### Tilting start pose and an end pose again as IS: SPG?
-18: Container(?s), Liquid(?x), contains(?s,?x), Container(?d), canTilt(?s), LocationRole(?l), at(?s, ?l), LocationRole(?g), hasDestination(?s, ?g), passthroughAt(?x, ?s, ?g) => willBeAt(?s, ?g)
+### Tilting start pose and an end pose again as IS: SPG?. Here G is a pose where the liquid comes out.
+### Tilt destination is a location at which the openings of s is within ds, liquid pass through s's opening and is contained inside d. 
+18o: hasTiltDestination(?s, ?g) => LocationRole(?g), willbeAt(?s, ?g), poursTo(?s, ?d)
+
+# For the liquid to come out of the container, the angle of tipping has to be increased
+18: -poursTo(?s,?d), isTilted(?s), canPourTo(?s,?d) => increaseTilting(?s) 
+## Check 10a and 10b. Todo: Can we state Decreasing Tilt leads to S upright
+#18a: poursTo(?s,?d), isTilted(?s), -canPourTo(?s,?d) => decreaseTilting(?s)
 
 ### Which direction to move to in case of spill
 
