@@ -41,3 +41,22 @@
 24: near(cup, teapot) => near(teapot, cup)
 
 
+### Perception queries for predicates: 
+Most of the below cases might not be possible with a perception system. Ask Franklin or Patrick.
+Some of the particles might behave different to the others?
+- nothing out -> Are particles crossing the opening of the source(?) (sim)
+- Too slow -> velocity of particles (sim)
+- Trickle along surface -> Are the particles crossing the opening of the source(?) and is there contact between the particles and the outer surface(in the sides) of source?
+- Too fast ->  velocity of particles (sim)? Also the quantity of water coming out could be more?
+- Too sideways -> Pose of particles entering Dest(sim)
+- Too little sideways -> Pose of particles entering Dest(sim)
+- Bouncing out -> Are the particles coming out of dest?
+- Stream too wide -> 
+- Tipping dest -> Position change in Dest. (assumed to be static)
+- Collision b/w source and dest -> Contact points (src)
+
+### Scenario
+- Source heavy
+- Source with a large spout
+- Source with a wide opening
+- 

@@ -1,0 +1,31 @@
+### Q - query perception (for now sim), P - perform the behavior
+
+### Velocity of the particles wrt the destination
+1: Container(?s), Container(?d), contains(?s, ?p), Relatum(?p), Locatum(?d), Q_poursTo(?s, ?d), Q_hasVelocity(?p, ?v), slow(?v) => P_increaseTipping(?s)
+
+### Sideways - overshoot. The liquid is reaching beyond the dest. container. Absolutely move source away from dest. 
+# The action is to perform move away and then move down
+2: Container(?s), Container(?d), contains(?s, ?p),  Q_poursTo(?s, ?d), Q_moveAwayFrom(?p, ?d) => P_moveAwayFrom(?s, ?d)
+2a: Container(?s), Container(?d), contains(?s, ?p),  Q_poursTo(?s, ?d), Q_moveAwayFrom(?p, ?d) => P_decreaseTipping(?s)
+2b: Container(?s), Container(?d), contains(?s, ?p),  Q_poursTo(?s, ?d), Q_moveAwayFrom(?p, ?d), movedAway(?s,?d) => P_moveDownTowards(?s, ?d)
+
+2 > 2a  # Action 2 has to be definitely performed. It is worth trying 2a
+
+### Sideways - undershoot (?). The liquid is reaching close to the source and is not contained in Destination. So move towards and then move up
+3: Container(?s), Container(?d), contains(?s, ?p), Q_poursTo(?s, ?d), Q_moveAwayFrom(?p, ?d), Q_moveNear(?p, ?s) => P_moveTowards(?s, ?d)
+3a: Container(?s), Container(?d), contains(?s, ?p), Q_poursTo(?s, ?d), Q_moveAwayFrom(?p, ?d), Q_moveNear(?p, ?s) => P_decreaseTipping(?s)
+3b: Container(?s), Container(?d), contains(?s, ?p), Q_poursTo(?s, ?d), Q_moveAwayFrom(?p, ?d), Q_moveNear(?p, ?s), near(?s, ?d) => P_moveUpFrom(?s, ?d)
+
+3 > 3a
+
+### Bouncing out - reduce tipping and move down. Just reducing tipping can help with the velocity
+4: Container(?s), Container(?d), contains(?s, ?p), Q_poursTo(?s, ?d), Q_moveOutside(?p, ?d) => P_decreaseTipping(?s)
+4a: Container(?s), Container(?d), contains(?s, ?p), Q_poursTo(?s, ?d), -Q_moveOutside(?p, ?d) => P_moveDownTowards(?s, ?d)
+
+### tipping the destination (wine glass situation as e.g) -> Reduce tipping
+5: Container(?s), Container(?d), contains(?s, ?p), Q_poursTo(?s, ?d), Q_moved(?d) => P_decreaseTipping(?s)
+
+### Collision between source and destination.
+6: Container(?s), Container(?d), contains(?s, ?p), Q_poursTo(?s, ?d), Q_contact(?s, ?d), Q_Above(?s, ?d) => P_moveUpFrom(?s, ?d)
+6a: Container(?s), Container(?d), contains(?s, ?p), Q_poursTo(?s, ?d), Q_contact(?s, ?d) => P_moveAwayFrom(?s, ?d)
+6b: Container(?s), Container(?d), contains(?s, ?p), Q_poursTo(?s, ?d), -Q_contact(?s, ?d) => P_increaseTipping(?s)
