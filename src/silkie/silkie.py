@@ -60,6 +60,7 @@
 #     [nq] <- empty # set inside the attractor if and only if -dq not proven
 
 # Operator flags
+import math
 
 canVisualize = True
 canPlot = True
@@ -72,6 +73,15 @@ except:
 
 try:
     import matplotlib.pyplot as plt
+except:
+    canPlot = False
+    if canVisualize:
+        print("Cannot import matplotlib.pyplot, make sure it is installed (e.g., pip3 install matplotlib). Will not produce plots, but may save visualizations to a file.")
+    else:
+        print("Cannot import matplotlib.pyplot, make sure it is installed (e.g., pip3 install matplotlib).")
+
+try:
+    import matplotlib.animation as anime
 except:
     canPlot = False
     if canVisualize:
@@ -167,8 +177,8 @@ def attractor(verts):
 def opposesAssertion(q, r):
     return (((q == -r.consequent) and (not (DEFEATER == r.operator))) or ((q == r.consequent) and (DEFEATER == rj.operator)))
 
-def dflInference(theory, teamDefeat=True, ambiguityPropagation=True, wellFoundedness=True,i2s=None,plotWindow=None,visFile=None):
-    doVisualize = canVisualize and (i2s is not None) and ((plotWindow is not None) or (visFile is not None))
+def dflInference(theory, teamDefeat=True, ambiguityPropagation=True, wellFoundedness=True,i2s=None,plotWindow=None,visFile=None, fig=None):
+    doVisualize = canVisualize and (i2s is not None) and ((fig is not None) or (visFile is not None))
     retq = Conclusions()
     # Stage 0: construct maps from theory entities to vertices in the inference graphs
     verts = 0
@@ -447,23 +457,67 @@ def dflInference(theory, teamDefeat=True, ambiguityPropagation=True, wellFounded
         visGraph.delete_vertices([x.index for x in visGraph.vs if not x["reached"]])
         if visFile is not None:
             visGraph.save(visFile)
-        if plotWindow is not None:
+        # if plotWindow is not None:
+        #     ig.plot(visGraph,
+        #             target=plotWindow,
+        #             layout="reingold_tilford",
+        #             vertex_size=25,
+        #             vertex_color=["steelblue" if t == "+r" else "salmon" for t in visGraph.vs["etype"]],
+        #             vertex_shape=["square" if t == "+r" else "diamond" for t in visGraph.vs["etype"]],
+        #             vertex_frame_width=0.0,
+        #             vertex_frame_color="white",
+        #             vertex_label=visGraph.vs["name"],
+        #             vertex_font="bold",
+        #             vertex_label_size=10.0,
+        #             # vertex_label_dist=1.0,
+        #             # vertex_label_cex=1.0,
+        #             vertex_label_angle=-math.pi/4,
+        #             edge_arrow_size=5,
+        #             edge_arrow_width=5,
+        #             edge_width=[1 for x in range(len(visGraph.es))],
+        #             edge_color=["#7142cf" for x in range(len(visGraph.es))])
+
+        def _update_graph(frame):
             ig.plot(visGraph,
-                    target=plotWindow,
+                    target=ax,
                     layout="reingold_tilford",
-                    vertex_size=15,
+                    vertex_size=25,
                     vertex_color=["steelblue" if t == "+r" else "salmon" for t in visGraph.vs["etype"]],
                     vertex_shape=["square" if t == "+r" else "diamond" for t in visGraph.vs["etype"]],
                     vertex_frame_width=0.0,
                     vertex_frame_color="white",
                     vertex_label=visGraph.vs["name"],
                     vertex_font="bold",
-                    vertex_label_size=5.0,
+                    vertex_label_size=10.0,
                     vertex_label_dist=1.0,
+                    # vertex_label_cex=1.0,
+                    vertex_label_angle=-math.pi/4,
                     edge_arrow_size=5,
                     edge_arrow_width=5,
                     edge_width=[1 for x in range(len(visGraph.es))],
                     edge_color=["#7142cf" for x in range(len(visGraph.es))])
+
+              # Capture handles for blitting
+            if frame == 0:
+                nhandles = 0
+            elif frame == 1:
+                nhandles = 1
+            elif frame < 11:
+                # vertex, 2 for each edge
+                nhandles = 3 * frame
+            else:
+                # The final edge closing the circle
+                nhandles = 3 * (frame - 1) + 2
+
+            handles = ax.get_children()[:nhandles]
+            return handles
+
+        if fig is not None:
+            ani = anime.FuncAnimation(fig, _update_graph, 12, interval=500, blit=True)
+            plt.ion()
+            plt.pause(0.5)
+            plt.show()
+
     return retq
 
 
