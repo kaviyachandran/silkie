@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 
@@ -6,14 +7,41 @@ sys.path.append(os.path.join(cpath,'../../src'))
 
 import silkie.silkie as silkie
 
-def reportTargetConclusions(theory, i2s, whitelist):
-    conclusions = silkie.dflInference(theory)
+try:
+    import matplotlib.pyplot as plt
+except:
+    pass
+
+def reportTargetConclusions(theory, i2s, whitelist,plotWindow=None,graphStoragePrefix=None,k=0):
+    if plotWindow is not None:
+        plt.cla()
+    if "" == graphStoragePrefix:
+        graphStoragePrefix = None
+    visFile=None
+    if graphStoragePrefix is not None:
+        visFile = graphStoragePrefix + "_%d.gml" % k
+    conclusions = silkie.dflInference(theory,i2s=i2s,plotWindow=plotWindow,visFile=visFile)
     conclusions = silkie.idx2strConclusions(conclusions, i2s)
     for c in conclusions.defeasiblyProvable:
         if c[0] in whitelist:
             print(c)
+    if plotWindow is not None:
+        plt.draw()
+        plt.pause(0.001)
+        input("Press ENTER to continue")
 
 def main():
+    parser = argparse.ArgumentParser(prog="flammability_example", description="Run an example for the silkie reasoner.", epilog="")
+    parser.add_argument('-v', '--visualize', action='store_true', help='Enable visualization.')
+    parser.add_argument('-s', '--storeplots', default='', help='Prefix of filenames to store visualizations in.')
+    arguments = parser.parse_args()
+    doVisualize = arguments.visualize
+    
+    k = 0
+    plotWindow = None
+    if doVisualize:
+        fig, plotWindow = plt.subplots(figsize=(7,7))
+    
     rulesO1 = silkie.loadDFLRules('./rules_option1.dfl')
     rulesO2 = silkie.loadDFLRules('./rules_option2.dfl')
     factsFireO2 = silkie.loadDFLFacts('./facts_sandpile.dfl')
@@ -35,7 +63,9 @@ def main():
     for scnSpec in [(theoryO2_opt1, i2sO2_opt1, 'Option 1, O2 fire'), (theoryClF3_opt1, i2sClF3_opt1, 'Option 1, ClF3 fire'), (theoryBoth_opt1, i2sBoth_opt1, 'Option 1, Both fires'), (theoryO2_opt2, i2sO2_opt2, 'Option 2, O2 fire'), (theoryClF3_opt2, i2sClF3_opt2, 'Option 2, ClF3 fire'), (theoryBoth_opt2, i2sBoth_opt2, 'Option 2, Both fires')]:
         theory, i2s, msg = scnSpec
         print('==========\n%s' % msg)
-        reportTargetConclusions(theory, i2s, ['protectedFrom', '-protectedFrom', 'hasDisp', '-hasDisp'])
+        
+        reportTargetConclusions(theory, i2s, ['protectedFrom', '-protectedFrom', 'hasDisp', '-hasDisp'], plotWindow=plotWindow,graphStoragePrefix=arguments.storeplots,k=k)
+        k += 1
 
 if __name__ == '__main__':
     main()
