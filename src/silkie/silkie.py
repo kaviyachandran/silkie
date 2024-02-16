@@ -178,7 +178,7 @@ def opposesAssertion(q, r):
     return (((q == -r.consequent) and (not (DEFEATER == r.operator))) or ((q == r.consequent) and (DEFEATER == rj.operator)))
 
 def dflInference(theory, teamDefeat=True, ambiguityPropagation=True, wellFoundedness=True,i2s=None,plotWindow=None,visFile=None, fig=None):
-    doVisualize = canVisualize and (i2s is not None) and ((fig is not None) or (visFile is not None))
+    doVisualize = canVisualize and (i2s is not None) and ((plotWindow is not None) or (visFile is not None))
     retq = Conclusions()
     # Stage 0: construct maps from theory entities to vertices in the inference graphs
     verts = 0
@@ -479,7 +479,7 @@ def dflInference(theory, teamDefeat=True, ambiguityPropagation=True, wellFounded
 
         def _update_graph(frame):
             ig.plot(visGraph,
-                    target=ax,
+                    target=plotWindow,
                     layout="reingold_tilford",
                     vertex_size=25,
                     vertex_color=["steelblue" if t == "+r" else "salmon" for t in visGraph.vs["etype"]],
@@ -509,7 +509,7 @@ def dflInference(theory, teamDefeat=True, ambiguityPropagation=True, wellFounded
                 # The final edge closing the circle
                 nhandles = 3 * (frame - 1) + 2
 
-            handles = ax.get_children()[:nhandles]
+            handles = plotWindow.get_children()[:nhandles]
             return handles
 
         if fig is not None:
