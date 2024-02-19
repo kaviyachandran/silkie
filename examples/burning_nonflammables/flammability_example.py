@@ -5,7 +5,7 @@ import sys
 cpath = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(cpath,'../../src'))
 
-import silkie.silkie as silkie
+import silkie as silkie
 
 try:
     import matplotlib.pyplot as plt
